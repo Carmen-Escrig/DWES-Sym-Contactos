@@ -5,6 +5,10 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Entity\Contacto;
+use Doctrine\Persistence\ManagerRegistry;
+use PSpell\Config;
+use Symfony\Component\Validator\Constraints\Regex;
 
 class ContactoController extends AbstractController
 {
@@ -17,29 +21,103 @@ class ContactoController extends AbstractController
         9 => ["nombre" => "Nora Jover", "telefono" => "54565859", "email" => "norajover@ieselcaminas.org"]
     ];
 
+    #[Route('/contacto/insertar', name: 'insertar_contacto')]
+
+    public function insertar(ManagerRegistry $doctrine)
+    {
+        $entityManager = $doctrine->getManager();
+        foreach($this->contactos as $c){
+            $contacto = new Contacto();
+            $contacto->setNombre($c["nombre"]);
+            $contacto->setTelefono($c["telefono"]);
+            $contacto->setEmail($c["email"]);
+            $entityManager->persist($contacto);
+        }
+
+        try
+        {
+            $entityManager->flush();
+            return new Response("Contactos insertados");
+        } catch (\Exception $e) {
+            return new Response("Error insertando objetos");
+        }
+    }
+
     #[Route('/contacto/{codigo}', name: 'ficha_contacto')]
     
-    public function ficha($codigo): Response
+    public function ficha(ManagerRegistry $doctrine, $codigo): Response
     {
-        $resultado = ($this->contactos[$codigo] ?? null);
+        $repositorio = $doctrine->getRepository(Contacto::class);
+        $contacto = $repositorio->find($codigo);
 
         return $this->render('ficha_contacto.html.twig', [
-            'contacto' => $resultado
+            'contacto' => $contacto
         ]);
     }
 
     #[Route('/contacto/buscar/{texto}', name: 'buscar_contacto')]
     
-    public function buscar($texto): Response
+    public function buscar(ManagerRegistry $doctrine, $texto): Response
     {
-        $resultados = array_filter($this->contactos, function($contacto) use ($texto) {
-            return strpos($contacto["nombre"], $texto) !== FALSE;
-        });
+        $repositorio = $doctrine->getRepository(Contacto::class);
+
+        $contacto = $repositorio->findByName($texto);
 
         return $this->render('lista_contactos.html.twig', [
-            'contactos' => $resultados,
+            'contactos' => $contacto,
             'texto' => $texto
         ]);      
+    }
+
+    #[Route('/contacto/update/{id}/{nombre}', name: 'modificar_contacto')]
+    
+    public function update(ManagerRegistry $doctrine, $id, $nombre): Response
+    {
+        $entityManager = $doctrine->getManager();
+        $repositorio = $doctrine->getRepository(Contacto::class);
+        $contacto = $repositorio->find($id);
+
+        if($contacto) {
+            $contacto->setNombre($nombre);
+            try
+            {
+                $entityManager->flush();
+                return $this->render('ficha_contacto.html.twig', [
+                    'contacto' => $contacto
+                ]);  
+            } catch (\Exception $e) {
+                return new Response("Error insertando objetos" . $e->getMessage());
+            }
+        }else{
+            return $this->render('ficha_contacto.html.twig', [
+                'contacto' => null
+            ]);
+        }     
+
+    }
+
+    #[Route('/contacto/delete/{id}', name: 'eliminar_contacto')]
+    
+    public function delete(ManagerRegistry $doctrine, $id): Response
+    {
+        $entityManager = $doctrine->getManager();
+        $repositorio = $doctrine->getRepository(Contacto::class);
+        $contacto = $repositorio->find($id);
+
+        if($contacto) {
+            try
+            {
+                $entityManager->remove($contacto);
+                $entityManager->flush();
+                return new Response("Contacto eliminado");
+            } catch (\Exception $e) {
+                return new Response("Error eliminando objeto" . $e->getMessage());
+            }
+        }else{
+            return $this->render('ficha_contacto.html.twig', [
+                'contacto' => null
+            ]);
+        }     
 
     }
 }
