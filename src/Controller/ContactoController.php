@@ -70,6 +70,32 @@ class ContactoController extends AbstractController
             return new Response("Error insertando objetos" . $e->getMessage());        }
     }
 
+    #[Route('/contacto/insertarSinProvincia', name: 'insertar_sin_provincia_contacto')]
+
+    public function insertarSinProvincia(ManagerRegistry $doctrine): Response {
+        $entityManager = $doctrine->getManager();
+        $repositorio = $doctrine->getRepository(Provincia::class);
+        
+        $provincia = $repositorio->findOneBy(["nombre" => "Alicante"]);
+
+
+        $contacto = new Contacto();
+        $contacto->setNombre("Inserción de prueba sin provincia");
+        $contacto->setTelefono("900220022");
+        $contacto->setEmail("insercion.de.prueba.sin.provincia@contacto.es");
+        $contacto->setProvincia($provincia);
+
+        $entityManager->persist($contacto);
+
+        try {
+            $entityManager->flush();
+            return $this->render('ficha_contacto.html.twig', [
+                'contacto' => $contacto
+            ]);
+        } catch (\Exception $e) {
+            return new Response("Error insertando objetos" . $e->getMessage());        }
+    }
+
     #[Route('/contacto/{codigo}', name: 'ficha_contacto')]
     
     public function ficha(ManagerRegistry $doctrine, $codigo): Response
