@@ -6,6 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Contacto;
+use App\Entity\Provincia;
 use Doctrine\Persistence\ManagerRegistry;
 use PSpell\Config;
 use Symfony\Component\Validator\Constraints\Regex;
@@ -41,6 +42,32 @@ class ContactoController extends AbstractController
         } catch (\Exception $e) {
             return new Response("Error insertando objetos");
         }
+    }
+
+    #[Route('/contacto/insertarConProvincia', name: 'insertar_con_provincia_contacto')]
+
+    public function insertarConProvincia(ManagerRegistry $doctrine): Response {
+        $entityManager = $doctrine->getManager();
+        
+        $provincia = new Provincia();
+        $provincia->setNombre("Alicante");
+
+        $contacto = new Contacto();
+        $contacto->setNombre("Inserción de prueba con provincia");
+        $contacto->setTelefono("900220022");
+        $contacto->setEmail("insercion.de.prueba.provincia@contacto.es");
+        $contacto->setProvincia($provincia);
+
+        $entityManager->persist($provincia);
+        $entityManager->persist($contacto);
+
+        try {
+            $entityManager->flush();
+            return $this->render('ficha_contacto.html.twig', [
+                'contacto' => $contacto
+            ]);
+        } catch (\Exception $e) {
+            return new Response("Error insertando objetos" . $e->getMessage());        }
     }
 
     #[Route('/contacto/{codigo}', name: 'ficha_contacto')]
