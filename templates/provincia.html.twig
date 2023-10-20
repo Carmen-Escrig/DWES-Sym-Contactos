@@ -1,0 +1,10 @@
+{% extends "base.html.twig" %}
+{% block title %}Contactos{% endblock %}
+{% block body %}
+    <h1>Provincia</h1>
+    {% if provincia %}
+        {{ include ('partials/datos_provincia.html.twig', { 'provincia': provincia }) }}
+    {% else %}
+        <p>Provincia no encontrada</p>
+    {% endif %}
+{% endblock %}
