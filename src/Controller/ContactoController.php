@@ -111,6 +111,7 @@ class ContactoController extends AbstractController
     {
         $contacto = new Contacto();
         $formulario = $this->createForm(ContactoType::class, $contacto);
+        $formulario->remove('delete');
 
             $formulario->handleRequest($request);
 
@@ -137,6 +138,10 @@ class ContactoController extends AbstractController
     
     public function editar(ManagerRegistry $doctrine, Request $request, $codigo): Response
     {
+        if(!$this->getUser()) {
+            return $this->redirectToRoute('app_login', [
+            ]);
+        }
         $repositorio = $doctrine->getRepository(Contacto::class);
         $contacto = $repositorio->find($codigo); 
 
@@ -145,6 +150,11 @@ class ContactoController extends AbstractController
             $formulario->handleRequest($request);
 
             if ($formulario->isSubmitted() && $formulario->isValid()) {
+                if($formulario->get('delete')->isClicked()) {
+                    return $this->redirectToRoute('eliminar_contacto', [
+                        "id" => $contacto->getId()
+                    ]);
+                }
                 $contacto = $formulario->getData();
                 $entityManager = $doctrine->getManager();
                 $entityManager->persist($contacto);
@@ -303,7 +313,8 @@ class ContactoController extends AbstractController
             {
                 $entityManager->remove($contacto);
                 $entityManager->flush();
-                return new Response("Contacto eliminado");
+                return $this->redirectToRoute('inicio', [
+                ]);            
             } catch (\Exception $e) {
                 return new Response("Error eliminando objeto" . $e->getMessage());
             }

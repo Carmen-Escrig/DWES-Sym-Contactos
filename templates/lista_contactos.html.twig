@@ -4,7 +4,7 @@
     <h1>Listado de contactos</h1>
     {% if contactos %}
         {% for contacto in contactos %}
-            {{ include ('partials/datos_contacto.html.twig', { 'contacto': contacto }) }}
+            {{ include ('partials/datos_contacto_enlace.html.twig', { 'contacto': contacto }) }}
         {% endfor %}
     {% else %}
         <p>No se han encontrado contactos con el nombre {{texto}}</p>

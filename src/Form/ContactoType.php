@@ -22,7 +22,8 @@ class ContactoType extends AbstractType
             ->add('provincia', EntityType::class, array(
                 'class' => Provincia::class,
                 'choice_label' => 'nombre',))
-            ->add('save', SubmitType::class, array('label' => 'Enviar'));
+            ->add('save', SubmitType::class, array('label' => 'Enviar'))
+            ->add('delete', SubmitType::class, ['label' => 'Delete']);
     }
 }
 
