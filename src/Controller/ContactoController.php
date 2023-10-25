@@ -19,6 +19,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class ContactoController extends AbstractController
 {
@@ -136,9 +137,10 @@ class ContactoController extends AbstractController
 
     #[Route('/contacto/editar/{codigo}', name: 'editar_contacto')]
     
-    public function editar(ManagerRegistry $doctrine, Request $request, $codigo): Response
+    public function editar(ManagerRegistry $doctrine, Request $request, $codigo, SessionInterface $session): Response
     {
         if(!$this->getUser()) {
+            $session->set('redirect', '/contacto/editar/' . $codigo);
             return $this->redirectToRoute('app_login', [
             ]);
         }

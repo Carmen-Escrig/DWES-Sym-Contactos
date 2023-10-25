@@ -1,5 +1,5 @@
 <ul>
-    <li><strong><a href="http://127.0.0.1:8080/contacto/editar/{{ contacto.id }}">{{ contacto.nombre }}</a></strong></li>
+    <li><strong><a href="http://127.0.0.1:8080/contacto/{{ contacto.id }}">{{ contacto.nombre }}</a></strong></li>
     <li><strong>Teléfono</strong>: {{ contacto.telefono }}</li>
     {% if contacto.provincia %}
         <li><strong>Provincia: </strong>{{ contacto.provincia.nombre }}</li>

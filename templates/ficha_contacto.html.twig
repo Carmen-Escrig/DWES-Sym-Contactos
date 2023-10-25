@@ -4,6 +4,7 @@
     <h1>Ficha del contacto</h1>
     {% if contacto %}
         {{ include ('partials/datos_contacto.html.twig', { 'contacto': contacto }) }}
+        <button><a href="http://127.0.0.1:8080/contacto/editar/{{contacto.id}}">Editar</a></button>
     {% else %}
         <p>Contacto no encontrado</p>
     {% endif %}
