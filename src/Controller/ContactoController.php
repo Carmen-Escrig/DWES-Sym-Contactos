@@ -20,6 +20,10 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 class ContactoController extends AbstractController
 {
@@ -137,7 +141,7 @@ class ContactoController extends AbstractController
 
     #[Route('/contacto/editar/{codigo}', name: 'editar_contacto')]
     
-    public function editar(ManagerRegistry $doctrine, Request $request, $codigo, SessionInterface $session): Response
+    public function editar(ManagerRegistry $doctrine, Request $request, $codigo, SessionInterface $session, SluggerInterface $slugger): Response
     {
         if(!$this->getUser()) {
             $session->set('redirect', '/contacto/editar/' . $codigo);
@@ -146,7 +150,7 @@ class ContactoController extends AbstractController
         }
         $repositorio = $doctrine->getRepository(Contacto::class);
         $contacto = $repositorio->find($codigo); 
-
+ 
         if($contacto) {
             $formulario = $this->createForm(ContactoType::class, $contacto);
             $formulario->handleRequest($request);
@@ -157,7 +161,34 @@ class ContactoController extends AbstractController
                         "id" => $contacto->getId()
                     ]);
                 }
+
                 $contacto = $formulario->getData();
+
+                $file = $formulario->get('file')->getData();
+                if ($file) {
+                    $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+
+                    $safeFilename = $slugger->slug($originalFilename);
+                    $newFilename = $safeFilename.'-'.uniqid().'.'.$file->guessExtension();
+                
+                    try {
+                        $file->move(
+                            $this->getParameter('images_directory'), $newFilename
+                        );
+                        $filesystem = new Filesystem();
+                        $filesystem->copy(
+                            $this->getParameter('images_directory') . '/'. $newFilename, 
+                            $this->getParameter('portfolio_directory') . '/'.  $newFilename, true
+                        );
+            
+                    } catch (FileException $e) {
+                        return new Response("Error" . $e->getMessage());
+                    }
+                    $contacto->setFile($newFilename);
+               
+                }
+
+
                 $entityManager = $doctrine->getManager();
                 $entityManager->persist($contacto);
 

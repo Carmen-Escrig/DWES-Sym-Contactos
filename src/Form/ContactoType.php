@@ -10,6 +10,8 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use App\Entity\Provincia;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Validator\Constraints\File;
 
 class ContactoType extends AbstractType
 {
@@ -22,9 +24,19 @@ class ContactoType extends AbstractType
             ->add('provincia', EntityType::class, array(
                 'class' => Provincia::class,
                 'choice_label' => 'nombre',))
+            ->add('file', FileType::class,[
+                'mapped' => false,
+                'constraints' => [
+                    new File([
+                        'mimeTypes' => [
+                            'image/jpeg',
+                            'image/png',
+                        ],
+                        'mimeTypesMessage' => 'Please upload a valid image file',
+                    ])
+                ],
+            ])
             ->add('save', SubmitType::class, array('label' => 'Enviar'))
             ->add('delete', SubmitType::class, ['label' => 'Delete']);
     }
 }
-
-?>
