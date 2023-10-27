@@ -24,10 +24,12 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\Security\Http\Util\TargetPathTrait;
+
 
 class ContactoController extends AbstractController
 {
-
+    use TargetPathTrait;
     private $contactos = [
         1 => ["nombre" => "Juan Pérez", "telefono" => "524142432", "email" => "juanp@ieselcaminas.org"],
         2 => ["nombre" => "Ana López", "telefono" => "58958448", "email" => "anita@ieselcaminas.org"],
@@ -143,11 +145,15 @@ class ContactoController extends AbstractController
     
     public function editar(ManagerRegistry $doctrine, Request $request, $codigo, SessionInterface $session, SluggerInterface $slugger): Response
     {
-        if(!$this->getUser()) {
+        /* if(!$this->getUser()) {
             $session->set('redirect', '/contacto/editar/' . $codigo);
             return $this->redirectToRoute('app_login', [
             ]);
-        }
+        } */
+
+        $this->saveTargetPath($session, 'main', '/book/edit/' . $codigo);
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
         $repositorio = $doctrine->getRepository(Contacto::class);
         $contacto = $repositorio->find($codigo); 
  
